@@ -28,6 +28,8 @@ const apiV2 = axios.create({
   }),
 });
 
+console.log(` Username ${process.env.ARUBA_USERNAME}`);
+
 async function loginV2() {
   try {
     console.log("Attempting login...");

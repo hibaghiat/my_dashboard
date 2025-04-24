@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -42,26 +53,23 @@ var apMappings_1 = require("./apMappings");
 var MongoClient = require("mongodb").MongoClient;
 // Mock function to get device status
 function getDeviceStatus(classroom) {
-    // Replace this with actual API call to IoT platform
-    // For now, simulate that some are on and some are off
-    var simulatedOnRooms = ["RoomA", "RoomB"]; // Example
+    var simulatedOnRooms = ["RoomA", "RoomB"];
     return simulatedOnRooms.includes(classroom);
 }
 // Control functions
 function turnOnDevices(classroom) {
     console.log(" [ACTION] Turning ON devices in ".concat(classroom));
-    // Call actual IoT API here
 }
 function turnOffDevices(classroom) {
     console.log(" [ACTION] Turning OFF devices in ".concat(classroom));
-    // Call actual IoT API here
 }
 var mongoUrl = "mongodb://127.0.0.1:27017";
 var dbName = "occupancyDB";
 var collectionName = "occupancy_logs";
+// Save data to MongoDB
 function saveDataToMongo(data) {
     return __awaiter(this, void 0, void 0, function () {
-        var client, db, collection, now, options, formatter, timestamp;
+        var client, db, collection, now, timestamp;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -72,16 +80,13 @@ function saveDataToMongo(data) {
                     db = client.db(dbName);
                     collection = db.collection(collectionName);
                     now = new Date();
-                    return [4 /*yield*/, collection.insertOne({
-                            timestamp: now,
-                            data: data,
-                        })];
+                    return [4 /*yield*/, collection.insertOne({ timestamp: now, data: data })];
                 case 2:
                     _a.sent();
                     return [4 /*yield*/, client.close()];
                 case 3:
                     _a.sent();
-                    options = {
+                    timestamp = new Intl.DateTimeFormat("en-GB", {
                         timeZone: "Africa/Casablanca",
                         year: "numeric",
                         month: "2-digit",
@@ -89,10 +94,8 @@ function saveDataToMongo(data) {
                         hour: "2-digit",
                         minute: "2-digit",
                         second: "2-digit",
-                        hour12: false
-                    };
-                    formatter = new Intl.DateTimeFormat("en-GB", options);
-                    timestamp = formatter.format(now).replace(/\D/g, "-");
+                        hour12: false,
+                    }).format(now).replace(/\D/g, "-");
                     console.log("---------- Data saved to MongoDB at ".concat(timestamp));
                     return [2 /*return*/];
             }
@@ -101,82 +104,95 @@ function saveDataToMongo(data) {
 }
 function handleOccupancyLogic(occupancies) {
     return __awaiter(this, void 0, void 0, function () {
-        var enriched, _loop_1, _i, _a, classroom;
-        var _b;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var enriched, _i, _a, classroom, occupancy, devicesOn, count, result, result;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0:
                     enriched = {};
-                    _loop_1 = function (classroom) {
-                        var occupancy, devicesOn, status_1, count, frequency, apName, rechecked, secondOccupancy;
-                        return __generator(this, function (_d) {
-                            switch (_d.label) {
-                                case 0:
-                                    occupancy = occupancies[classroom].occupancy;
-                                    devicesOn = getDeviceStatus(classroom);
-                                    status_1 = "NA";
-                                    count = 0;
-                                    frequency = "1 hour";
-                                    if (devicesOn && occupancy !== 0) {
-                                        status_1 = "On";
-                                        console.log(" ".concat(classroom, ": Devices ON & Occupancy ").concat(occupancy, " \u2192 Check again in an hour."));
-                                    }
-                                    if (!(devicesOn && occupancy === 0)) return [3 /*break*/, 3];
-                                    console.log("------- ".concat(classroom, ": Devices ON & Occupancy 0 \u2192 Checking again in 5 min..."));
-                                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 5 * 60 * 1000); })];
-                                case 1:
-                                    _d.sent();
-                                    apName = Object.keys(apMappings_1.apMappings).find(function (ap) { return apMappings_1.apMappings[ap] === classroom; });
-                                    if (!apName)
-                                        return [2 /*return*/, "continue"];
-                                    return [4 /*yield*/, (0, arubaService_1.getDataForAPs)([apName])];
-                                case 2:
-                                    rechecked = _d.sent();
-                                    secondOccupancy = ((_b = rechecked[classroom]) === null || _b === void 0 ? void 0 : _b.occupancy) || 0;
-                                    if (secondOccupancy === 0) {
-                                        turnOffDevices(classroom);
-                                        status_1 = "Off";
-                                        count = 1;
-                                        frequency = "5 mins";
-                                    }
-                                    else {
-                                        status_1 = "On";
-                                    }
-                                    _d.label = 3;
-                                case 3:
-                                    if (!devicesOn && occupancy === 0) {
-                                        status_1 = "Off";
-                                        console.log(" ".concat(classroom, ": Devices OFF & Occupancy 0 \u2192 Check again in an hour."));
-                                    }
-                                    if (!devicesOn && occupancy !== 0) {
-                                        turnOnDevices(classroom);
-                                        status_1 = "On";
-                                        console.log(" ".concat(classroom, ": Devices OFF & Occupancy ").concat(occupancy, " \u2192 Turned ON devices, will check again in an hour."));
-                                    }
-                                    enriched[classroom] = { occupancy: occupancy, status: status_1, count: count, frequency: frequency };
-                                    return [2 /*return*/];
-                            }
-                        });
-                    };
                     _i = 0, _a = Object.keys(occupancies);
-                    _c.label = 1;
+                    _b.label = 1;
                 case 1:
-                    if (!(_i < _a.length)) return [3 /*break*/, 4];
+                    if (!(_i < _a.length)) return [3 /*break*/, 5];
                     classroom = _a[_i];
-                    return [5 /*yield**/, _loop_1(classroom)];
+                    occupancy = occupancies[classroom].occupancy;
+                    devicesOn = getDeviceStatus(classroom);
+                    count = 0;
+                    if (!devicesOn) return [3 /*break*/, 3];
+                    return [4 /*yield*/, handleDevicesOn(classroom, occupancy)];
                 case 2:
-                    _c.sent();
-                    _c.label = 3;
+                    result = _b.sent();
+                    enriched[classroom] = __assign({ occupancy: occupancy }, result);
+                    return [3 /*break*/, 4];
                 case 3:
+                    result = handleDevicesOff(classroom, occupancy);
+                    enriched[classroom] = __assign({ occupancy: occupancy }, result);
+                    _b.label = 4;
+                case 4:
                     _i++;
                     return [3 /*break*/, 1];
-                case 4: return [2 /*return*/, enriched];
+                case 5: return [2 /*return*/, enriched];
             }
         });
     });
 }
+// Handle devices when they are on
+function handleDevicesOn(classroom, occupancy) {
+    return __awaiter(this, void 0, void 0, function () {
+        var count, status, frequency, apName, rechecked, secondOccupancy;
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    count = 0;
+                    status = "NA";
+                    frequency = "1 hour";
+                    if (!(occupancy !== 0)) return [3 /*break*/, 1];
+                    status = "On";
+                    console.log(" ".concat(classroom, ": Devices ON & Occupancy ").concat(occupancy, " \u2192 Check again in an hour."));
+                    return [3 /*break*/, 4];
+                case 1:
+                    console.log("------- ".concat(classroom, ": Devices ON & Occupancy 0 \u2192 Checking again in 5 min..."));
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 5 * 60 * 1000); })];
+                case 2:
+                    _b.sent();
+                    apName = Object.keys(apMappings_1.apMappings).find(function (ap) { return apMappings_1.apMappings[ap] === classroom; });
+                    if (!apName)
+                        return [2 /*return*/, { status: status, count: count, frequency: frequency }];
+                    return [4 /*yield*/, (0, arubaService_1.getDataForAPs)([apName])];
+                case 3:
+                    rechecked = _b.sent();
+                    secondOccupancy = ((_a = rechecked[classroom]) === null || _a === void 0 ? void 0 : _a.occupancy) || 0;
+                    if (secondOccupancy === 0) {
+                        turnOffDevices(classroom);
+                        status = "Off";
+                        count = 1;
+                        frequency = "5 mins";
+                    }
+                    else {
+                        status = "On";
+                    }
+                    _b.label = 4;
+                case 4: return [2 /*return*/, { status: status, count: count, frequency: frequency }];
+            }
+        });
+    });
+}
+// Handle devices when they are off
+function handleDevicesOff(classroom, occupancy) {
+    var count = 0;
+    var frequency = "1 hour";
+    // If occupancy is 0, set status to "Off"
+    if (occupancy === 0) {
+        console.log(" ".concat(classroom, ": Devices OFF & Occupancy 0 \u2192 Check again in an hour."));
+        return { status: "Off", count: count, frequency: frequency };
+    }
+    // If occupancy is not 0, turn on devices and set status to "On"
+    turnOnDevices(classroom);
+    console.log(" ".concat(classroom, ": Devices OFF & Occupancy ").concat(occupancy, " \u2192 Turned ON devices, will check again in an hour."));
+    return { status: "On", count: count, frequency: frequency };
+}
 // Schedule to run every hour from 8AM to 10PM
-cron.schedule("13 3-22 * * *", function () { return __awaiter(void 0, void 0, void 0, function () {
+cron.schedule("28 3-22 * * *", function () { return __awaiter(void 0, void 0, void 0, function () {
     var rawOccupancies, enrichedOccupancies, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
