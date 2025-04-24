@@ -41,7 +41,7 @@ exports.getDataForAPs = getDataForAPs;
 exports.loginV2 = loginV2;
 exports.getData = getData;
 var https_1 = require("https");
-require("dotenv/config");
+require('dotenv').config({ path: '../.env' });
 var apMappings_1 = require("./apMappings");
 var axios_1 = require("axios");
 var ARUBA_BASE_URL_V2 = "https://10.6.0.1:4343";

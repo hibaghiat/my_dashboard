@@ -63,7 +63,7 @@ function turnOnDevices(classroom) {
 function turnOffDevices(classroom) {
     console.log(" [ACTION] Turning OFF devices in ".concat(classroom));
 }
-var mongoUrl = "mongodb://127.0.0.1:27017";
+var mongoUrl = process.env.MONGO_URI;
 var dbName = "occupancyDB";
 var collectionName = "occupancy_logs";
 // Save data to MongoDB
@@ -192,7 +192,7 @@ function handleDevicesOff(classroom, occupancy) {
     return { status: "On", count: count, frequency: frequency };
 }
 // Schedule to run every hour from 8AM to 10PM
-cron.schedule("28 3-22 * * *", function () { return __awaiter(void 0, void 0, void 0, function () {
+cron.schedule("0 3-22 * * *", function () { return __awaiter(void 0, void 0, void 0, function () {
     var rawOccupancies, enrichedOccupancies, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {

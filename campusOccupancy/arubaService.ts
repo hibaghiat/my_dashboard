@@ -1,5 +1,5 @@
 import { Agent} from "https";
-import "dotenv/config";
+require('dotenv').config({ path: '../.env' });
 import { apMappings } from "./apMappings";
 import axios from "axios";
 

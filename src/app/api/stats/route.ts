@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
 
 export async function GET() {
+  let client;
   try {
     const mongoUrl = process.env.MONGO_URI;
     if (!mongoUrl) {
       throw new Error("MONGO_URI environment variable is not defined");
     }
-    const client = new MongoClient(mongoUrl);
+    client = new MongoClient(mongoUrl);
     await client.connect();
     const db = client.db("occupancyDB");
 
@@ -63,6 +64,11 @@ export async function GET() {
         },
         });
   } catch (err) {
+    console.error("Error connecting to the database", err);
     return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
+  } finally {
+    if (client) {
+      await client.close(); // Ensure that the connection is closed
+    }
   }
 }
