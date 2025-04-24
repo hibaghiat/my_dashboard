@@ -121,12 +121,9 @@ const TableRow = ({
     <tr className={order % 2 ? "bg-stone-100 text-sm" : "text-sm"}>
       <td className="p-1.5">{Building}</td>
       <td className="p-1.5">
-        <a
-          href="#"
-          className="text-violet-600 flex items-center gap-1"
-        >
+        <button className="text-violet-600 flex items-center gap-1">
+        </button>
           {Room} <FiArrowUpRight />
-        </a>
       </td>
       <td className="p-1.5">{AP}</td>
       <td className="p-1.5">{Occupancy}</td>

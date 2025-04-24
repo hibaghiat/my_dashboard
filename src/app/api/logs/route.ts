@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
 
+// Define types for the room data
+interface RoomData {
+  occupancy: number;
+  status: string;
+  count: number;
+  frequency: string;
+}
+
+interface Data {
+  [roomName: string]: RoomData;
+}
+
 export async function GET() {
   try {
     const mongoUrl = "mongodb://127.0.0.1:27017";
@@ -20,7 +32,7 @@ export async function GET() {
       return NextResponse.json({ rooms: [] });
     }
 
-    const data = latestLog[0].data;
+    const data: Data = latestLog[0].data; // Cast data to the defined Data type
 
     // Get AP mappings from devices collection
     const deviceDocs = await db.collection("devices").find({}).toArray();
@@ -35,20 +47,19 @@ export async function GET() {
       }
     }
 
-    const result = Object.entries(data).map(([roomName, { occupancy }]) => {
-      let status = "NA";
-      let count = 0;
-      let frequency = "1 hour";
+    const result = Object.entries(data).map(([roomName, { occupancy, status, count, frequency }]) => {
       let ap = roomToApMap[roomName] || "Unknown";
-
+      
+      if (roomName === "NAB Classroom 001") {
+        status = "On";
+      } else {
+        status = "NA";
+      }
       if (occupancy === 0) {
         count = 1;
-        frequency = "5 mins"
-        if(roomName === "NAB Classroom 001"){
-          status = "On";
-        }
+        frequency = "5 mins";
       }
-      
+
       return {
         building: "NAB",
         room: roomName.replace(/^NAB\s+/i, "").replace(/^Classroom/i, "ClassRoom"),

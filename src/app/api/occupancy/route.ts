@@ -35,8 +35,8 @@ function parseSourceFileDate(fileName: string): Date {
 function transformLogsToChartData(logs: Log[], roomName: string) {
   const data: Record<string, any>[] = [];
 
-  for (let i = 0; i < logs.length; i++) {
-    const log = logs[i];
+  // Loop through the logs and group them by day and hour
+  logs.forEach((log, i) => {
     const dayIndex = Math.floor(i / 15); // 15 hours per day
     const hourIndex = i % 15;
 
@@ -45,12 +45,14 @@ function transformLogsToChartData(logs: Log[], roomName: string) {
 
     const occupancy = log?.data?.[roomName]?.occupancy ?? 0;
 
+    // Initialize the day if it's the first time we encounter it
     if (!data[dayIndex]) {
       data[dayIndex] = { name: dayName };
     }
 
+    // Add the occupancy data for this specific hour
     data[dayIndex][hourLabel] = occupancy;
-  }
+  });
 
   return data;
 }
@@ -66,19 +68,23 @@ export async function GET(req: NextRequest) {
     await client.connect();
     const db = client.db("occupancyDB");
 
-    const logs = (await db
+    // Fetch logs and sort them by timestamp (ascending)
+    const logs = await db
       .collection("occupancy_logs")
       .find({})
-      .toArray())
-      .sort((a, b) => {
-        const dateA = parseSourceFileDate(a.sourceFile);
-        const dateB = parseSourceFileDate(b.sourceFile);
-        return dateA.getTime() - dateB.getTime();
-      })
-      .slice(0, 75);
+      .limit(75)
+      .toArray();
 
-    const typedLogs: Log[] = logs as unknown as Log[];
+    // Sort logs by the sourceFile timestamp (using parseSourceFileDate)
+    const sortedLogs = logs.sort((a, b) => {
+      const dateA = parseSourceFileDate(a.sourceFile);
+      const dateB = parseSourceFileDate(b.sourceFile);
+      return dateA.getTime() - dateB.getTime();
+    }).slice(0, 75); // Limit to 75 most recent logs
 
+    const typedLogs: Log[] = sortedLogs as unknown as Log[];
+
+    // Transform the logs into chart-friendly format
     const chartData = transformLogsToChartData(typedLogs, roomName);
 
     return NextResponse.json({ data: chartData });
