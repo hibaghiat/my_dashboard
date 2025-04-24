@@ -18,7 +18,8 @@ function turnOffDevices(classroom: string) {
   console.log(` [ACTION] Turning OFF devices in ${classroom}`);
 }
 
-const mongoUrl = "mongodb://127.0.0.1:27017";
+
+const mongoUrl = process.env.MONGO_URI;
 const dbName = "occupancyDB";
 const collectionName = "occupancy_logs";
 

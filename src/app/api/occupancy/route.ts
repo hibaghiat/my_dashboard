@@ -64,7 +64,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing room parameter" }, { status: 400 });
     }
 
-    const client = new MongoClient("mongodb://127.0.0.1:27017");
+    const mongoUrl = process.env.MONGO_URI;
+    if (!mongoUrl) {
+      throw new Error("MONGO_URI environment variable is not defined");
+    }
+    const client = new MongoClient(mongoUrl);
     await client.connect();
     const db = client.db("occupancyDB");
 
