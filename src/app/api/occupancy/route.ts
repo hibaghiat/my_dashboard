@@ -19,7 +19,7 @@ const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 
 // Helper to parse date from sourceFile like "occupancy_14-04-2025--08-00-12.json"
 function parseSourceFileDate(fileName: string): Date {
-  const match = fileName.match(/occupancy_(\d{2})-(\d{2})-(\d{4})--(\d{2})-(\d{2})/);
+  const match = RegExp(/occupancy_(\d{2})-(\d{2})-(\d{4})--(\d{2})-(\d{2})/).exec(fileName);
   if (!match) return new Date(0); // fallback to epoch if parsing fails
 
   const [_, day, month, year, hour, minute] = match;
@@ -32,31 +32,43 @@ function parseSourceFileDate(fileName: string): Date {
   );
 }
 
-// Transform logs into chart data grouped by day and hour
+function formatHourLabel(hour: number): string {
+  const suffix = hour >= 12 ? "pm" : "am";
+
+  let adjusted: number;
+  if (hour === 0) {
+    adjusted = 12;
+  } else if (hour > 12) {
+    adjusted = hour - 12;
+  } else {
+    adjusted = hour;
+  }
+
+  return `${adjusted}${suffix}`;
+}
+
+
 function transformLogsToChartData(logs: Log[], roomName: string) {
-  const data: Record<string, any>[] = [];
+  const timeSlots: Record<string, any>[] = hours.map((hour) => ({ name: hour }));
 
-  // Loop through the logs and group them by day and hour
-  logs.forEach((log, i) => {
-    const dayIndex = Math.floor(i / 15); // 15 hours per day
-    const hourIndex = i % 15;
+  logs.forEach((log) => {
+    const date = parseSourceFileDate(log.sourceFile);
+    const day = weekdays[date.getDay() - 1]; // skip Sunday
+    const hour = formatHourLabel(date.getHours());
 
-    const dayName = weekdays[dayIndex];
-    const hourLabel = hours[hourIndex];
+    if (!day || !hours.includes(hour)) return;
 
     const occupancy = log?.data?.[roomName]?.occupancy ?? 0;
 
-    // Initialize the day if it's the first time we encounter it
-    if (!data[dayIndex]) {
-      data[dayIndex] = { name: dayName };
+    const hourIndex = hours.indexOf(hour);
+    if (hourIndex !== -1) {
+      timeSlots[hourIndex][day] = occupancy;
     }
-
-    // Add the occupancy data for this specific hour
-    data[dayIndex][hourLabel] = occupancy;
   });
 
-  return data;
+  return timeSlots;
 }
+
 
 export async function GET(req: NextRequest) {
   try {
@@ -81,7 +93,7 @@ export async function GET(req: NextRequest) {
       .toArray();
 
     // Sort logs by the sourceFile timestamp (using parseSourceFileDate)
-    const sortedLogs = logs.sort((a, b) => {
+    const sortedLogs = logs.toSorted((a, b) => {
       const dateA = parseSourceFileDate(a.sourceFile);
       const dateB = parseSourceFileDate(b.sourceFile);
       return dateA.getTime() - dateB.getTime();

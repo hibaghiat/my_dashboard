@@ -13,30 +13,20 @@ import {
 } from "recharts";
 
 const colors = [
-  "#5b21b6", // purple
   "#2563eb", // blue
   "#16a34a", // green
-  "#dc2626", // red
   "#f59e0b", // amber
-  "#0e7490", // cyan
-  "#db2777", // pink
-  "#7c3aed", // indigo
-  "#059669", // emerald
-  "#d97706", // orange
-  "#6b7280", // gray
-  "#be123c", // rose
-  "#10b981", // teal
   "#9333ea", // violet
   "#ef4444", // red again (fallback)
 ];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
+  if (active && payload?.length) {
     return (
       <div className="bg-white border shadow-sm p-2 rounded text-sm">
         <p className="text-xs text-stone-500 font-semibold">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <div key={`item-${index}`} className="flex justify-between text-xs">
+        {payload?.map((entry: any) => (
+          <div key={entry.name ?? entry.dataKey} className="flex justify-between text-xs">
             <span className="font-medium" style={{ color: entry.stroke }}>
               {entry.name}: 
             </span>
@@ -137,11 +127,11 @@ export const ActivityGraph = () => {
               tickLine={false}
             />
             <Tooltip content={<CustomTooltip />} wrapperStyle={{ zIndex: 9999 }} />
-            {[ "8am", "9am", "10am", "11am", "12pm", "1pm", "2pm", "3pm", "4pm", "5pm", "6pm", "7pm", "8pm", "9pm", "10pm"].map((hour, index) => (
+            {[ "Mon", "Tue", "Wed", "Thu", "Fri"].map((day, index) => (
               <Line
-                key={hour}
+                key={day}
                 type="monotone"
-                dataKey={hour}
+                dataKey={day}
                 stroke={colors[index % colors.length]} // wrap around if more than 15
                 strokeWidth={1.5}
                 dot={false}
