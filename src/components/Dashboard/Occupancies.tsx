@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { FiArrowUpRight, FiUser, FiMoreHorizontal } from "react-icons/fi";
+import { FiUser, FiMoreHorizontal } from "react-icons/fi";
 
 const date = new Date().toLocaleDateString('en-US', { 
   month: 'short',   
@@ -85,13 +85,13 @@ const TableHead = () => {
   return (
     <thead>
       <tr className="text-sm font-normal text-stone-500">
-        <th className="text-start p-1.5">Building</th>
-        <th className="text-start p-1.5">Room</th>
-        <th className="text-start p-1.5">Access Point</th>
-        <th className="text-start p-1.5">Occupancy</th>
-        <th className="text-start p-1.5">Status</th>
-        <th className="text-start p-1.5">Count</th>
-        <th className="text-start p-1.5">Frequency</th>
+        <th className="text-left p-2 w-[10%]">Building</th>
+        <th className="text-left p-2 w-[15%]">Room</th>
+        <th className="text-left p-2 w-[20%]">Access Point</th>
+        <th className="text-left p-2 w-[10%]">Occupancy</th>
+        <th className="text-left p-2 w-[10%]">Status</th>
+        <th className="text-left p-2 w-[10%]">Count</th>
+        <th className="text-left p-2 w-[15%]">Frequency</th>
         <th className="w-8"></th>
       </tr>
     </thead>
@@ -108,10 +108,10 @@ const TableRow = ({
   Frequency,
   order,
 }: {
-  Building: string,
+  Building: string;
   Room: string;
   AP: string;
-  Occupancy: string;  
+  Occupancy: string;
   Status: string;
   Count: string;
   Frequency: string;
@@ -119,17 +119,13 @@ const TableRow = ({
 }) => {
   return (
     <tr className={order % 2 ? "bg-stone-100 text-sm" : "text-sm"}>
-      <td className="p-1.5">{Building}</td>
-      <td className="p-1.5">
-        <button className="text-violet-600 flex items-center gap-1">
-        </button>
-          {Room} <FiArrowUpRight />
-      </td>
-      <td className="p-1.5">{AP}</td>
-      <td className="p-1.5">{Occupancy}</td>
-      <td className="p-1.5">{Status}</td>
-      <td className="p-1.5">{Count}</td>
-      <th className="p-1.5">{Frequency}</th>
+      <td className="p-2 w-[10%]">{Building}</td>
+      <td className="p-1.5 whitespace-nowrap text-violet-600 flex items-center gap-1">{Room}</td>
+      <td className="p-2 w-[20%]">{AP}</td>
+      <td className="p-2 w-[10%]">{Occupancy}</td>
+      <td className="p-2 w-[10%]">{Status}</td>
+      <td className="p-2 w-[10%]">{Count}</td>
+      <td className="p-2 w-[15%]">{Frequency}</td>
       <td className="w-8">
         <button className="hover:bg-stone-200 transition-colors grid place-content-center rounded text-sm size-8">
           <FiMoreHorizontal />
@@ -138,3 +134,4 @@ const TableRow = ({
     </tr>
   );
 };
+
