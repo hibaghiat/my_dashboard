@@ -17,7 +17,7 @@ export const StatCards = () => {
     const hour = now.getHours();
   
     if (hour >= 8 && hour <= 22) {
-      return `As of 19:00`;
+      return `As of ${hour.toString().padStart(2, "0")}:00`;
     } else {
       return "No active monitoring as of 10pm";
     }
